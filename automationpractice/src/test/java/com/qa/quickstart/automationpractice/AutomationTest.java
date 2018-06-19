@@ -23,7 +23,7 @@ public class AutomationTest {
 	
 	@After
 	public void tearDown() {
-		//driver.quit();
+		driver.quit();
 	}
 	@Test
 	public void test1() {
@@ -31,6 +31,7 @@ public class AutomationTest {
 		String searchWord = "dress";
 		String specificItem = "Printed Summer Dress";
 		List<String> clothesList = new ArrayList<String>();
+		
 		driver.navigate().to(url);
 		WebElement checkElement;
 		List<WebElement> checkList;
@@ -43,8 +44,9 @@ public class AutomationTest {
 		
 		checkList = driver.findElementsByClassName("product-name");
 		for (WebElement element : checkList) {
+			System.out.println(element);
 			clothesList.add(element.getText());
-			System.out.println(element.getText());
+
 		}
 		assertTrue(clothesList.contains(specificItem));
 
