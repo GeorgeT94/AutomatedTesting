@@ -23,17 +23,42 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.Color;
 import org.openqa.selenium.support.PageFactory;
 
+import com.relevantcodes.extentreports.ExtentReports;
+import com.relevantcodes.extentreports.ExtentTest;
+import com.relevantcodes.extentreports.LogStatus;
+
 import junit.framework.TestCase;
 
- 
 
 public class demoQaTests{
 	ChromeDriver driver;
+	static ExtentReports extent;
+	static ExtentTest test;
+	
+	@BeforeClass
+	public static void init() {
+		System.setProperty("webdriver.chrome.driver", "C:\\Users\\Admin\\Desktop\\Testing\\chromedriver.exe");
+		
+		
+		String filePath = "C:\\Users\\Admin\\Desktop\\demoQAreport.html";
+		
+		extent = new ExtentReports(filePath, true);
+
+		
+		
+		test = extent.startTest("Verify application Title");
+
+		// add a note to the test
+		test.log(LogStatus.INFO, "Browser started");
+
+		// report the test as a pass
+		test.log(LogStatus.PASS, "verify Title of the page");
+
+
+	}
 
 	@Before
 	public void before() {
-		
-		System.setProperty("webdriver.chrome.driver", "C:\\Users\\Admin\\Desktop\\Testing\\chromedriver.exe");
 		driver = new ChromeDriver();
 		
 	 }
@@ -42,6 +67,7 @@ public class demoQaTests{
 	public void tearDown() {
 		try { Thread.sleep(500); } catch(Exception e) {} 
 		driver.close();
+		extent.flush();
 	}
 	
 	@Test
@@ -55,91 +81,73 @@ public class demoQaTests{
 		dragTest.moveBox();
 		
 		Point finalCoords = driver.findElement(By.id("draggable")).getLocation();
+		test = extent.startTest("Check if object can be dragged");
 		
-		assertTrue("no position change", (finalCoords.getX() - coordinates.getX()) > 200 && (finalCoords.getY() - coordinates.getY()) > 100);
+		
+		
+		try {
+			assertTrue("no position change", (finalCoords.getX() - coordinates.getX()) > 200 && (finalCoords.getY() - coordinates.getY()) > 100);
+			test.log(LogStatus.PASS, "Box position was successfully moved");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 	}
 	@Test
 	public void testSelectable() {
+		test = extent.startTest("Check if elements cna be selected by clicking and dragging");
+		Selectable select = PageFactory.initElements(driver, Selectable.class);
 		driver.manage().window().maximize();
 		String url = "http://demoqa.com/selectable/";
 		driver.navigate().to(url);
-		List<WebElement> elementList = new ArrayList<WebElement>();
-		
-		Point coordinates = driver.findElement(By.id("selectable")).getLocation();
-		try { Thread.sleep(500); } catch(Exception e) {} 
-		try {
-			
-			Robot robot = new Robot();
-			robot.mouseMove(coordinates.getX()+50 ,coordinates.getY()+120);
-			robot.mousePress(InputEvent.BUTTON1_MASK);
-			try { Thread.sleep(1000); } catch(Exception e) {} 
-			robot.mouseMove(coordinates.getX() +200, coordinates.getY()+500);
-			robot.mouseRelease(InputEvent.BUTTON1_MASK);
-		
-		}catch (Exception e) {
-			//do nothing
-		}
 
-		elementList = driver.findElementsByClassName("ui-selected");
+		select.selectBoxes();
+		List<WebElement> elementList = select.selectedBoxes();
 		
-		assertTrue("not all elements selected", elementList.size() == 7);
+		
+		
+		
+		try {
+			assertTrue("not all elements selected", elementList.size() == 7);
+			test.log(LogStatus.PASS, "All boxes were selected");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 	}
 	
 	@Test
 	public void testAccordian() {
+		test = extent.startTest("Test if accordian elemnt can be expanded when clicked on");
 		driver.manage().window().maximize();
 		String url = "http://demoqa.com/accordion/";
-		String divId;
 		driver.navigate().to(url);
-
 		
-		WebElement checkElement;
-		List<WebElement> elementList = new ArrayList<WebElement>();
+		Accordian accord = PageFactory.initElements(driver, Accordian.class);
 		
-		elementList = driver.findElementsByClassName("ui-accordion-header");
-		System.out.println("there are " + elementList.size()+ " headers");
-		for(WebElement ele: elementList) {
-
-			divId = ele.getAttribute("id");
-			ele.click();
-			
-			assertTrue("accordian not made active", ele.getAttribute("class").contains("ui-accordion-header-active"));
-			
-			//get the id number from the end of the id
-			divId = ele.getAttribute("id");
-			divId = divId.replaceAll("[^?0-9]+", " "); 
-			divId = divId.trim();
-			
-			//go to next element
-			int id = Integer.parseInt(divId) + 1;
-			divId = "ui-id-" + id;
-			ele = driver.findElementById(divId);
-			
-			assertTrue("text is still hidden", ele.getAttribute("aria-hidden").contains("false"));
-			
-			//go through the next tabs
-			if(id == 11) driver.findElementById("ui-id-2").click();
-			if(id == 19) driver.findElementById("ui-id-3").click();
-			
-		}
+		
+		
+		try {
+			accord.testAccordian();
+			test.log(LogStatus.PASS, "Accordian elements can be expanded");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 	}
 	
-	@Ignore
-	private List<String> getDropDownList(WebElement searchBar, String searchTerm){
-		List<String> autoCompleteList = new ArrayList<String>();
-		List<WebElement> elementList = new ArrayList<WebElement>();
-		searchBar.click();
-		searchBar.clear();
-		searchBar.sendKeys(searchTerm);
-		
-		try { Thread.sleep(500); } catch(Exception e) {} 
-		elementList = driver.findElementsByClassName("ui-menu-item");
-		
-		for (WebElement element : elementList) {
-			autoCompleteList.add(element.getText());
-		}
-		return autoCompleteList;
-	}
 	
 	@Test
 	public void testAutoComplete() {
@@ -147,90 +155,111 @@ public class demoQaTests{
 		String url = "http://demoqa.com/autocomplete/";
 		driver.navigate().to(url);
 		
-		List<String> autoCompleteList = new ArrayList<String>();
-		
-		WebElement checkElement = driver.findElementById("tagss");
+		AutoComplete autoComplete = PageFactory.initElements(driver, AutoComplete.class);
+		List<String> autoCompleteList;
 
-		autoCompleteList = getDropDownList(checkElement, "ja");
-		assertTrue(autoCompleteList.contains("Java"));
-		assertTrue(autoCompleteList.contains("JavaScript"));
-		
-		
-		autoCompleteList = getDropDownList(checkElement, "sc");
-		assertTrue(autoCompleteList.contains("Scala"));
-		
-		
-	}
-	
-	@Ignore
-	private void pressButton(String id, int count) {
-		WebElement btn;
-		for(int i = 0; i < count; i++ ){
-			btn = driver.findElementByClassName(id);
-			try { Thread.sleep(200); } catch(Exception e) {} ;
-			btn.click();
-		}
-		
+		test = extent.startTest("Test if dropdown menu contains relevant search results");
+
+		try {
+			autoCompleteList = autoComplete.getDropDownList("ja");
+			
+			assertTrue(autoCompleteList.contains("Java"));
+			test.log(LogStatus.PASS, "Java appears when searching 'ja'");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
+		try {
+			autoCompleteList = autoComplete.getDropDownList("ja");
+			
+			assertTrue(autoCompleteList.contains("JavaScript"));
+			test.log(LogStatus.PASS, "JavaScript appears when searching 'ja'");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
+		try {
+			autoCompleteList = autoComplete.getDropDownList("sc");
+			assertTrue(autoCompleteList.contains("Scala"));
+			
+			test.log(LogStatus.PASS, "Scala appears when searching 'sc'");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 		
 	}
 	
 	@Test
 	public void testDatePicker() {
-		//creating an expected date in the format expected
-		SimpleDateFormat formatter = new SimpleDateFormat("MMMMM dd, yyyy");
-		SimpleDateFormat format1 = new SimpleDateFormat("dd-MM-yyyy");
-		Date currentDate = new Date();
-		LocalDate localDate = currentDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		Date expectedDate;
-		int monthsBack = 5;
-		int date = 24;
-		int month = localDate.getMonthValue() - monthsBack;
-		
-		try {
-			expectedDate = format1.parse(date +"-" + month + "-2018");
-		}catch(Exception e) {
-			expectedDate = currentDate;
-		}
-		
-		String dateString = formatter.format(expectedDate);
-		System.out.println(dateString);
-		
-		List<WebElement> elementList = new ArrayList<WebElement>();
-		
-		
+
+		test = extent.startTest("See if date picker gives the correct date when clicked on");
 		//Navigating to the web page
 		driver.manage().window().maximize();
 		String url = "http://demoqa.com/datepicker/";
 		driver.navigate().to(url);
 		
+		DatePicker datePicker = PageFactory.initElements(driver, DatePicker.class);
 
 		//clicking on the datepicker bar and checking if a datepicker ui is displayed
-		WebElement datePickerBar = driver.findElementById("datepicker1");
-		datePickerBar.click();
-		try { Thread.sleep(500); } catch(Exception e) {} ;
+		
+		datePicker.clickDateBox();
 		WebElement datePickerUI= driver.findElementById("ui-datepicker-div");
-		System.out.println(datePickerUI);
-		assertTrue("datepicker ui is not displayed", datePickerUI.isDisplayed());
+
 		
-		pressButton("ui-datepicker-prev", monthsBack);
-		
-		elementList = driver.findElementsByTagName("td");
-		for(WebElement ele: elementList){
-			if(ele.getText().equals(Integer.toString(date))){
-				ele.click();
+		try {
+			assertTrue("datepicker ui is not displayed", datePickerUI.isDisplayed());
+			
+			test.log(LogStatus.PASS, "Date picker ui is displayed");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
 			}
-		}
-		try { Thread.sleep(1000); } catch(Exception e) {} ;
 		
-		datePickerBar = driver.findElementById("datepicker1");		
+		int monthsBack = 5;
+		int date = 24;
+		
+
+		String dateString = datePicker.getDateString(monthsBack, date);
+		datePicker.selectDate(monthsBack, date);
+		
+		WebElement datePickerBar = driver.findElementById("datepicker1");		
 		String dateInBar = datePickerBar.getAttribute("value");
-
-		assertEquals(dateInBar, dateString);
-
+		
+		
+		try {
+			assertEquals(dateInBar, dateString);
+			
+			test.log(LogStatus.PASS, "Correct date is displayed");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 	}
 	
 	@Test
 	public void testMenu() {
+		test = extent.startTest("Check if menu items change background color and have correct href");
 		List<WebElement> elementList = new ArrayList<WebElement>();
 		String hex;
 		String expectedHex = "#ff9900";
@@ -251,8 +280,34 @@ public class demoQaTests{
 			hex = Color.fromString(ele.getCssValue("background-color").toString()).asHex();
 			href = ele.findElement(By.tagName("a")).getAttribute("href");
 			
-			assertEquals(expectedHex, hex);
-			assertEquals(url+expectedHref, href);
+			
+			try {
+				assertEquals(expectedHex, hex);
+				
+				test.log(LogStatus.PASS, "correct colour shown when hovered over");
+				}catch(AssertionError e) {
+					test.log(LogStatus.FAIL, "oof, what a goof");
+					
+					fail();
+				}finally {
+					test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+				extent.endTest(test);
+				}
+			
+			
+			try {
+				assertEquals(url+expectedHref, href);
+				
+				test.log(LogStatus.PASS, "correct href shown when hovered over");
+				}catch(AssertionError e) {
+					test.log(LogStatus.FAIL, "oof, what a goof");
+					
+					fail();
+				}finally {
+					test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+				extent.endTest(test);
+				}
+			
 		}
 	}
 	
@@ -273,6 +328,7 @@ public class demoQaTests{
 	}
 	@Test
 	public void testSlider() {
+		test = extent.startTest("Check if slider can be dragged and gives correct values");
 		Actions builder = new Actions(driver);
 		String url = "http://demoqa.com/slider/";
 		driver.navigate().to(url);
@@ -284,28 +340,79 @@ public class demoQaTests{
 		int widthPerOne = width/9;
 		
 		//reset slider
-		builder.moveToElement(slider).clickAndHold().moveByOffset(-widthPerOne*4, 0).release().perform();
-		amount = driver .findElement(By.id("amount1"));
-		assertEquals(1, getSliderValue(slider));
+		try {
+			builder.moveToElement(slider).clickAndHold().moveByOffset(-widthPerOne*4, 0).release().perform();
+			amount = driver .findElement(By.id("amount1"));
+			assertEquals(1, getSliderValue(slider));
+			
+			test.log(LogStatus.PASS, "slider moved to correct start position");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
+
 		
-		moveBar(slider, 5);
-		assertEquals(6, getSliderValue(slider));
-		try { Thread.sleep(1000); } catch(Exception e) {} 
 		
-		moveBar(slider, 4);
-		assertEquals(10, getSliderValue(slider));
-		try { Thread.sleep(1000); } catch(Exception e) {} 
+		try {
+			moveBar(slider, 5);
+			assertEquals(6, getSliderValue(slider));
+			try { Thread.sleep(1000); } catch(Exception e) {} 
+			
+			
+			test.log(LogStatus.PASS, "slider moved forward correct amount");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 		
-		moveBar(slider, -5);
-		assertEquals(5, getSliderValue(slider));
-		try { Thread.sleep(1000); } catch(Exception e) {}
+
 		
+		try {
+			moveBar(slider, 4);
+			assertEquals(10, getSliderValue(slider));
+			try { Thread.sleep(1000); } catch(Exception e) {} 
+			
+			
+			test.log(LogStatus.PASS, "slider moved forward correct amount");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
+
+		try {
+			moveBar(slider, -5);
+			assertEquals(5, getSliderValue(slider));
+			try { Thread.sleep(1000); } catch(Exception e) {}
+			
+			
+			test.log(LogStatus.PASS, "slider moved backwards correct amount");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 		builder.release();
 	}	
 	
 
 	@Test
 	public void testTabs() {
+		test = extent.startTest("Check if clicking tabs displays text");
 		driver.manage().window().maximize();
 		String url = "http://demoqa.com/tabs";
 		String divId;
@@ -321,12 +428,28 @@ public class demoQaTests{
 			ele.click();
 			divId = ele.getAttribute("aria-controls");
 			checkElement = driver.findElement(By.id(divId));
-			assertTrue(checkElement.isDisplayed());
+			
+			
+			try {
+				assertTrue(checkElement.isDisplayed());
+				try { Thread.sleep(1000); } catch(Exception e) {}
+				
+				
+				test.log(LogStatus.PASS, "tab info displayed when tab is clicked");
+				}catch(AssertionError e) {
+					test.log(LogStatus.FAIL, "oof, what a goof");
+					
+					fail();
+				}finally {
+					test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+				extent.endTest(test);
+				}
 		}
 	}
 	
 	@Test
 	public void testTooltips() {
+		test = extent.startTest("Check if tooltips appear on hover");
 		Actions builder = new Actions(driver);
 		driver.manage().window().maximize();
 		String url = "http://demoqa.com/tooltip";
@@ -336,7 +459,22 @@ public class demoQaTests{
 		builder.moveToElement(inputBox).perform();
 		
 		WebElement toolTip = driver.findElementByClassName("ui-tooltip");
-		assertTrue(toolTip.isDisplayed());
+
+		
+		try {
+			assertTrue(toolTip.isDisplayed());
+			try { Thread.sleep(1000); } catch(Exception e) {}
+			
+			
+			test.log(LogStatus.PASS, "tooltip is displayed on hover");
+			}catch(AssertionError e) {
+				test.log(LogStatus.FAIL, "oof, what a goof");
+				
+				fail();
+			}finally {
+				test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
+			extent.endTest(test);
+			}
 		
 	}
 }

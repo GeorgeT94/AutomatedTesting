@@ -44,7 +44,6 @@ public class AutomationTest {
 		
 		checkList = driver.findElementsByClassName("product-name");
 		for (WebElement element : checkList) {
-			System.out.println(element);
 			clothesList.add(element.getText());
 
 		}

@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.qa.quickstart</groupId>
-  <artifactId>automationpractice</artifactId>
+  <artifactId>phpTravels</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>automationpractice</name>
+  <name>phpTravels</name>
   <url>http://maven.apache.org</url>
 
   <properties>

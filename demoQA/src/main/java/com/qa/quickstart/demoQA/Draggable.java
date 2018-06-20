@@ -9,6 +9,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
 public class Draggable {
+	
 	@FindBy(id="draggable")
 	private WebElement draggableBox;
 	
