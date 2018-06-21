@@ -60,8 +60,8 @@ public class JavaTests {
 		String url = "https://www.phptravels.net/";
 		driver.navigate().to(url);
 		
-		try {
-			phpTravels.book("london", 3, 2);
-		}catch(Exception e) {}
+
+		phpTravels.book("london", 3, 2);
+
 	}
 }
