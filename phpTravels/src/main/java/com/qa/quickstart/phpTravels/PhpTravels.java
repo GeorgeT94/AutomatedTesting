@@ -40,6 +40,12 @@ public class PhpTravels {
 	@FindBy(className="day")
 	List<WebElement> days;
 	
+	@FindBy(id="travellersInput")
+	WebElement travellers;
+	
+	@FindBy(id="adultPlusBtn")
+	WebElement plusButton;
+	
 	@FindBy(xpath="//*[@id=\"HOTELS\"]/form/div[5]/button")
 	WebElement submitButton;
 	
@@ -139,6 +145,11 @@ public class PhpTravels {
 				break;
 			}
 		}
+		
+		action.moveToElement(travellers).click().perform();;
+		
+		wait.until(ExpectedConditions.visibilityOf(plusButton));
+		action.moveToElement(plusButton).click().perform();
 		
 		wait.until(ExpectedConditions.visibilityOf(submitButton));
 		action.moveToElement(submitButton).click().perform();

@@ -3,13 +3,16 @@ package com.qa.quickstart.WebDriver;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -101,12 +104,19 @@ public class WebDriverTest{
 	
 	@Test
 	public void testloginFromExcel() throws IOException, InvalidFormatException {
+		
 		String user = "default";
 		String password = "password";
 		ExtentTest test = extent.startTest("multiple User signUp and login");
 		Login login = PageFactory.initElements(driver, Login.class);
 		
 		
+		//Write to excel file
+		String filePath = "C:\\Users\\Admin\\Desktop";
+		String fileName = "loginResults.xlsx";
+		String[] resultString = new String[3];
+
+        WriteExcel objExcelFile = new WriteExcel();
 		  // Creating a Workbook from an Excel file (.xls or .xlsx)
         Workbook workbook = WorkbookFactory.create(new File(SAMPLE_XLSX_FILE_PATH));
 
@@ -135,19 +145,21 @@ public class WebDriverTest{
                 	user = dataFormatter.formatCellValue(cell);
                 }
                 if(cell.getColumnIndex() == 1) {
-                	
                 	password = dataFormatter.formatCellValue(cell);
                 	
                 	driver.manage().window().maximize();
             		String url = "http://thedemosite.co.uk/addauser.php";
             		driver.navigate().to(url);
+            		resultString[0] = user;
+            		resultString[1] = password;
             		System.out.println("user:" + user + ", password : " + password);
             		login.SignUpUser(user, password);
             		
             		url = "http://thedemosite.co.uk/login.php";
             		driver.navigate().to(url);
             		String status = login.logInUser(user, password);
-            		
+            		resultString[2] = status;
+ 
             		try {
             			assertEquals("**Successful Login**", status);
             			test.log(LogStatus.PASS, "succesfully created an account and logged in");
@@ -159,12 +171,12 @@ public class WebDriverTest{
             			test.log(LogStatus.INFO, "Current URL: " + driver.getCurrentUrl());
             		extent.endTest(test);
             		}
+            		objExcelFile.write(filePath, fileName, "results", resultString);
                 }
    
             }
 
-        }
-		
+        }		
 		
 	}
 		
